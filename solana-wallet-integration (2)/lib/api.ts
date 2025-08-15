@@ -1,5 +1,10 @@
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080"
 
+// Log the API URL being used for debugging
+if (typeof window !== "undefined") {
+  console.log("[v0] Using API URL:", API_BASE_URL)
+}
+
 export interface TransactionParams {
   payer_id: string
   reciever_id: string
