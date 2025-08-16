@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { RefreshCw, Wallet, Copy } from "lucide-react"
+import { getWalletBalance } from "@/lib/solana-client"
 
 export function WalletInfo() {
   const { connection } = useConnection()
@@ -19,7 +20,7 @@ export function WalletInfo() {
     if (connected && publicKey) {
       setLoading(true)
       try {
-        const balance = await connection.getBalance(publicKey)
+        const balance = await getWalletBalance(publicKey.toString())
         setBalance(balance / LAMPORTS_PER_SOL)
       } catch (error) {
         console.error("Failed to fetch balance:", error)

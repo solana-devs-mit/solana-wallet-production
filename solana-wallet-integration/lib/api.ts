@@ -1,10 +1,4 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080"
-
-// Log the API URL being used for debugging
-if (typeof window !== "undefined") {
-  console.log("[v0] Using API URL:", API_BASE_URL)
-}
-
+// No longer need external API URL since we're using internal API routes
 export interface TransactionParams {
   payer_id: string
   reciever_id: string
@@ -22,18 +16,18 @@ export interface BalanceResponse {
   balance_sol: number
 }
 
-// Get balance from backend
+// Get balance from Next.js API route
 export async function getBalance(pubkey: string): Promise<BalanceResponse> {
-  const response = await fetch(`${API_BASE_URL}/balance/${pubkey}`)
+  const response = await fetch(`/api/balance/${pubkey}`)
   if (!response.ok) {
     throw new Error("Failed to fetch balance")
   }
   return response.json()
 }
 
-// Send SOL transaction
+// Send SOL transaction (not used anymore - using wallet signing)
 export async function sendTransaction(params: TransactionParams): Promise<TransactionResponse> {
-  const response = await fetch(`${API_BASE_URL}/transfer`, {
+  const response = await fetch(`/api/transfer`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -48,7 +42,7 @@ export async function sendTransaction(params: TransactionParams): Promise<Transa
 
 // Get transaction signatures only
 export async function getTransactionHistory(pubkey: string): Promise<any[]> {
-  const response = await fetch(`${API_BASE_URL}/transaction/${pubkey}`)
+  const response = await fetch(`/api/transaction/${pubkey}`)
   if (!response.ok) {
     throw new Error("Failed to fetch transaction history")
   }
@@ -57,7 +51,7 @@ export async function getTransactionHistory(pubkey: string): Promise<any[]> {
 
 // Get full transaction history
 export async function getFullTransactionHistory(pubkey: string): Promise<any[]> {
-  const response = await fetch(`${API_BASE_URL}/transaction/full/${pubkey}`)
+  const response = await fetch(`/api/transaction/full/${pubkey}`)
   if (!response.ok) {
     throw new Error("Failed to fetch full transaction history")
   }

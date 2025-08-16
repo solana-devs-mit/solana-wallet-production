@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { getTransactionHistory, getFullTransactionHistory } from "@/lib/api"
+import { getTransactionSignatures, getFullTransactionHistory } from "@/lib/solana-client"
 import { History, Clock, ExternalLink } from "lucide-react"
 
 export function TransactionHistory() {
@@ -23,8 +23,10 @@ export function TransactionHistory() {
     setError(null)
 
     try {
-      const data = await getTransactionHistory(publicKey.toString())
-      setSignatures(data)
+      console.log(`[v0] Frontend: Fetching signatures for wallet: ${publicKey.toString()}`)
+      const data = await getTransactionSignatures(publicKey.toString())
+      console.log(`[v0] Frontend: Received ${data.length} signatures`)
+      setSignatures(data.map((sig) => ({ signature: sig })))
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to fetch signatures")
     } finally {
@@ -39,7 +41,9 @@ export function TransactionHistory() {
     setError(null)
 
     try {
+      console.log(`[v0] Frontend: Fetching full history for wallet: ${publicKey.toString()}`)
       const data = await getFullTransactionHistory(publicKey.toString())
+      console.log(`[v0] Frontend: Received ${data.length} full transactions`)
       setFullHistory(data)
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to fetch full history")
@@ -110,6 +114,29 @@ export function TransactionHistory() {
             )}
 
             <div className="space-y-3 max-h-96 overflow-y-auto">
+              {signatures.length === 0 && !loading && (
+                <div className="p-4 bg-yellow-50 dark:bg-yellow-950/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+                  <div className="text-yellow-800 dark:text-yellow-200 text-sm">
+                    <p className="font-medium mb-2">No transactions found</p>
+                    <p>This wallet has no transactions on devnet. To test:</p>
+                    <ul className="list-disc list-inside mt-1 space-y-1">
+                      <li>
+                        Get devnet SOL from{" "}
+                        <a
+                          href="https://faucet.solana.com"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="underline"
+                        >
+                          Solana Faucet
+                        </a>
+                      </li>
+                      <li>Make a test transaction using the Send SOL form above</li>
+                      <li>Ensure Phantom is set to Devnet network</li>
+                    </ul>
+                  </div>
+                </div>
+              )}
               {signatures.map((sig, index) => (
                 <div key={index} className="p-4 bg-muted/30 border border-border/50 rounded-lg backdrop-blur-sm">
                   <div className="font-mono text-sm break-all mb-3 text-foreground">{sig.signature}</div>
@@ -143,13 +170,36 @@ export function TransactionHistory() {
             )}
 
             <div className="space-y-3 max-h-96 overflow-y-auto">
+              {fullHistory.length === 0 && !loading && (
+                <div className="p-4 bg-yellow-50 dark:bg-yellow-950/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+                  <div className="text-yellow-800 dark:text-yellow-200 text-sm">
+                    <p className="font-medium mb-2">No transaction history found</p>
+                    <p>This wallet has no transactions on devnet. To test:</p>
+                    <ul className="list-disc list-inside mt-1 space-y-1">
+                      <li>
+                        Get devnet SOL from{" "}
+                        <a
+                          href="https://faucet.solana.com"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="underline"
+                        >
+                          Solana Faucet
+                        </a>
+                      </li>
+                      <li>Make a test transaction using the Send SOL form above</li>
+                      <li>Ensure Phantom is set to Devnet network</li>
+                    </ul>
+                  </div>
+                </div>
+              )}
               {fullHistory.map((tx, index) => (
                 <div
                   key={index}
                   className="p-4 bg-muted/30 border border-border/50 rounded-lg backdrop-blur-sm space-y-3"
                 >
                   <div className="font-mono text-xs break-all text-foreground bg-muted/50 p-2 rounded border">
-                    {tx.transaction?.signatures?.[0] || "No signature"}
+                    {tx.signature || "No signature"}
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm">
                     <div className="flex items-center gap-2">
@@ -164,13 +214,13 @@ export function TransactionHistory() {
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="font-medium text-muted-foreground">Fee:</span>
-                      <span className="text-foreground">{tx.meta?.fee || 0} lamports</span>
+                      <span className="text-foreground">{tx.fee || 0} lamports</span>
                     </div>
                   </div>
-                  {tx.transaction?.signatures?.[0] && (
+                  {tx.signature && (
                     <Button variant="outline" size="sm" asChild className="w-full bg-transparent">
                       <a
-                        href={`https://explorer.solana.com/tx/${tx.transaction.signatures[0]}?cluster=devnet`}
+                        href={`https://explorer.solana.com/tx/${tx.signature}?cluster=devnet`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="flex items-center gap-2"
