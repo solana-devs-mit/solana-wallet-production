@@ -1,13 +1,12 @@
 "use client"
 
 import { useConnection, useWallet } from "@solana/wallet-adapter-react"
-import { LAMPORTS_PER_SOL } from "@solana/web3.js"
 import { useEffect, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { RefreshCw, Wallet, Copy } from "lucide-react"
-import { getWalletBalance } from "@/lib/solana-client"
+import { LAMPORTS_PER_SOL } from "@solana/web3.js"
 
 export function WalletInfo() {
   const { connection } = useConnection()
@@ -15,15 +14,27 @@ export function WalletInfo() {
   const [balance, setBalance] = useState<number | null>(null)
   const [loading, setLoading] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const fetchBalance = async () => {
     if (connected && publicKey) {
       setLoading(true)
+      setError(null)
       try {
-        const balance = await getWalletBalance(publicKey.toString())
-        setBalance(balance / LAMPORTS_PER_SOL)
+        console.log("[v0] Fetching balance for:", publicKey.toString())
+        console.log("[v0] Connection endpoint:", connection.rpcEndpoint)
+
+        const balanceInLamports = await connection.getBalance(publicKey)
+        console.log("[v0] Balance in lamports:", balanceInLamports)
+
+        const balanceInSol = balanceInLamports / LAMPORTS_PER_SOL
+        console.log("[v0] Balance in SOL:", balanceInSol)
+
+        setBalance(balanceInSol)
       } catch (error) {
-        console.error("Failed to fetch balance:", error)
+        console.error("[v0] Failed to fetch balance:", error)
+        setError(error instanceof Error ? error.message : "Failed to fetch balance")
+        setBalance(null)
       } finally {
         setLoading(false)
       }
@@ -44,6 +55,9 @@ export function WalletInfo() {
 
   useEffect(() => {
     fetchBalance()
+
+    const interval = setInterval(fetchBalance, 10000)
+    return () => clearInterval(interval)
   }, [connection, publicKey, connected])
 
   if (!connected) {
@@ -88,6 +102,8 @@ export function WalletInfo() {
             <div className="text-4xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
               {loading ? (
                 <span className="text-muted-foreground">Loading...</span>
+              ) : error ? (
+                <span className="text-destructive text-lg">Error loading balance</span>
               ) : balance !== null ? (
                 `${balance.toFixed(4)} SOL`
               ) : (
@@ -104,6 +120,7 @@ export function WalletInfo() {
               <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
             </Button>
           </div>
+          {error && <div className="text-xs text-destructive bg-destructive/10 px-2 py-1 rounded">{error}</div>}
           <div className="text-xs text-muted-foreground">Devnet Balance</div>
         </div>
 
