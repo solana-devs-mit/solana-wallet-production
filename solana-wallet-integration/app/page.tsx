@@ -2,6 +2,7 @@ import { WalletButton } from "@/components/wallet-button"
 import { WalletInfo } from "@/components/wallet-info"
 import { TransactionHistory } from "@/components/transaction-history"
 import { SendSolForm } from "@/components/send-sol-form"
+import { SolAirdrop } from "@/components/sol-airdrop"
 
 export default function Home() {
   return (
@@ -69,8 +70,9 @@ export default function Home() {
 
       <main className="relative container mx-auto px-6 py-16 max-w-6xl">
         <div className="relative grid gap-8 lg:grid-cols-3">
-          <div className="lg:col-span-1">
+          <div className="lg:col-span-1 space-y-8">
             <WalletInfo />
+            <SolAirdrop />
           </div>
           <div className="lg:col-span-2 space-y-8">
             <SendSolForm />
